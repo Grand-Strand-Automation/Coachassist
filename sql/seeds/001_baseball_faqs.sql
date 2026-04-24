@@ -1,0 +1,5 @@
+-- Starter FAQ ideas for baseball teams. Run after creating an organization/team and replace the IDs.
+-- insert into public.faqs (organization_id, team_id, keyword, question, answer) values
+-- ('ORG_ID', 'TEAM_ID', 'cleats', 'Do players need cleats?', 'Yes, players should wear baseball cleats unless the field rules say otherwise.'),
+-- ('ORG_ID', 'TEAM_ID', 'snacks', 'Should we bring snacks?', 'Please bring water and a light snack. Coaches will announce team snack rotations separately.'),
+-- ('ORG_ID', 'TEAM_ID', 'weather', 'What happens if it rains?', 'Coach will post any weather or cancellation updates in GroupMe as soon as the league confirms.');
