@@ -8,3 +8,9 @@ node_modules/
 *~
 .vscode/
 .idea/
+
+.next/
+out/
+.vercel/
+tsconfig.tsbuildinfo
+.env.local
