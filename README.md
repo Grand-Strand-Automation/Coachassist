@@ -23,46 +23,76 @@ Ask Coach is a multi-tenant youth sports communication assistant. Coaches publis
    ```bash
    cp .env.example .env.local
    ```
-4. Create a Supabase project and run `sql/migrations/001_initial_schema.sql` in the Supabase SQL editor.
-5. Fill `.env.local` with Supabase, OpenAI, GroupMe, and cron values.
-6. Start the app:
+4. Fill `.env.local` with real keys/values (see table below).
+5. Start the app:
    ```bash
    npm run dev
+   ```
+6. Verify quality gates:
+   ```bash
+   npm run typecheck
+   npm run lint
+   npm run build
+   npm test
    ```
 7. Visit `http://localhost:3000/signup`, create a coach account, then create an organization/team.
 
 ## Environment variables
 
+Required:
+
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 - `SUPABASE_SERVICE_ROLE_KEY`
-- `OPENAI_API_KEY`
-- `OPENAI_MODEL` optional, defaults to `gpt-4o-mini`
-- `GROUPME_BOT_NAME_DEFAULT`
+- `GROUPME_TOKEN_ENCRYPTION_SECRET` (used for AES-256-GCM encryption at rest)
 - `APP_URL`
-- `GROUPME_TOKEN_ENCRYPTION_SECRET` placeholder for production KMS/Vault strategy
-- `CRON_SECRET`
-- Stripe placeholders: `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`
+
+Optional but strongly recommended:
+
+- `OPENAI_API_KEY` (if missing, deterministic fallback responses are used)
+- `OPENAI_MODEL` (defaults to `gpt-4o-mini`)
+- `GROUPME_BOT_NAME_DEFAULT` (defaults to `Ask Coach`)
+- `CRON_SECRET` (required if you want to protect `/api/cron/reminders`)
+
+Stripe placeholders (not active for MVP pilot):
+
+- `STRIPE_SECRET_KEY`
+- `STRIPE_WEBHOOK_SECRET`
+- `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`
 
 ## Supabase setup
 
-Run the migration before using the app. RLS policies allow users to access only organizations where they are members. Service-role routes are used only for external webhooks and cron. The `profiles` table is populated by an auth trigger.
+1. Create a Supabase project.
+2. In SQL Editor, run:
+   - `sql/migrations/001_initial_schema.sql`
+3. Confirm tables were created: `organizations`, `organization_members`, `teams`, `groupme_connections`, `games`, `faqs`, `message_logs`, `reminder_rules`, `reminder_logs`, `subscriptions`, `usage_counters`.
+4. In Authentication settings, ensure email/password auth is enabled.
+5. Add your project URL, anon key, and service-role key to `.env.local`.
+
+Notes:
+
+- RLS is enabled and scoped to org membership.
+- Service-role access is intentionally used for onboarding bootstrap + cron + webhook paths.
+- `profiles` rows are created by the `on_auth_user_created` trigger.
 
 ## Vercel deployment
 
-1. Import the repo in Vercel.
-2. Set the environment variables above.
-3. Set `APP_URL=https://your-vercel-domain.vercel.app`.
-4. `vercel.json` schedules `/api/cron/reminders` every 15 minutes. If `CRON_SECRET` is set, configure the cron authorization header to `Bearer <CRON_SECRET>` or remove the secret check for managed-only invocations.
-5. Deploy. Next.js route handlers run as Vercel Functions.
+1. Import this repo into Vercel.
+2. Set all `.env.example` variables in the Vercel project.
+3. Set `APP_URL=https://<your-vercel-domain>`.
+4. `vercel.json` already schedules `/api/cron/reminders` every 15 minutes.
+5. If using `CRON_SECRET`, configure the cron request header:
+   - `Authorization: Bearer <CRON_SECRET>`
+6. Deploy.
 
 ## GroupMe setup/testing
 
 1. In the dashboard, open a team and go to **GroupMe integration**.
 2. Enter a GroupMe access token, group ID, and optional bot name.
 3. The app calls GroupMe bot creation with callback URL `${APP_URL}/api/groupme/webhook` and stores the bot ID by tenant/team.
-4. Post a question in the GroupMe group, for example: `What time and where is the game?`.
-5. The webhook resolves `group_id -> groupme_connections -> organization/team`, fetches active game + FAQs, generates an answer, posts with the correct `bot_id`, and logs the exchange.
+4. Publish an active game from the team game page.
+5. Post a question in the GroupMe group, for example: `What time and where is the game?`.
+6. The webhook resolves `group_id -> groupme_connections -> organization/team`, fetches active game + FAQs, generates an answer, posts with the correct `bot_id`, and logs the exchange.
 
 ## Manual checks
 
@@ -74,6 +104,7 @@ Run the migration before using the app. RLS policies allow users to access only 
 
 ## Production notes
 
-- `access_token_encrypted` is intentionally isolated and marked as a placeholder. Replace the base64 placeholder with envelope encryption via KMS/Vault or avoid storing GroupMe access tokens after bot creation.
+- GroupMe access tokens are encrypted at rest with AES-256-GCM using `GROUPME_TOKEN_ENCRYPTION_SECRET`. This is an MVP baseline, not a full key-management solution.
+- For production hardening, move encryption keys to managed KMS and add key rotation.
 - Stripe checkout is stubbed in `lib/billing.ts` and `/api/billing/checkout`; add price IDs and webhook verification when monetization is enabled.
 - The database type file is hand-authored for the MVP. Generate it with the Supabase CLI as the schema grows.
