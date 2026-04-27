@@ -81,6 +81,7 @@ export async function saveGame(teamId: string, formData: FormData) {
       organization_id: team.organization_id,
       team_id: teamId,
       created_by: user.id,
+      source_type: "manual",
       status: input.status || "scheduled",
       is_active: true,
       ...input,
@@ -132,7 +133,7 @@ export async function connectGroupMe(teamId: string, formData: FormData) {
     const { count } = await supabase.from("groupme_connections").select("id", { count: "exact", head: true }).eq("organization_id", team.organization_id).eq("is_active", true);
     if (!isWithinLimit(org?.plan, "groupmeGroups", count || 0)) throw new Error("GroupMe group plan limit reached");
     const callbackUrl = appUrl("/api/groupme/webhook");
-    const botName = input.botName || process.env.GROUPME_BOT_NAME_DEFAULT || "Ask Coach";
+    const botName = input.botName || process.env.GROUPME_BOT_NAME_DEFAULT || "CoachAssist Bot";
     const bot = await createGroupMeBot(input.accessToken, input.groupId, botName, callbackUrl);
     await supabase.from("groupme_connections").upsert(
       {

@@ -2,6 +2,7 @@ import { Button, Card, Field, Badge } from "@/components/ui";
 import { connectGroupMe } from "@/lib/actions";
 import { requireUser } from "@/lib/auth";
 import { requireTeamAccess } from "@/lib/permissions";
+import { StatusToast } from "@/components/status-toast";
 export default async function GroupMePage({
   params,
   searchParams,
@@ -16,19 +17,21 @@ export default async function GroupMePage({
   const { data: connections } = await supabase.from("groupme_connections").select("*").eq("team_id", teamId).order("created_at", { ascending: false });
   return (
     <div>
-      <h1 className="text-3xl font-black">GroupMe integration</h1>
-      <p className="mt-1 text-slate-600">Create/register a GroupMe bot and route this group&apos;s messages to the right tenant.</p>
-      {query.status === "connected" ? <p className="mt-4 rounded-lg bg-emerald-50 p-3 text-sm text-emerald-700">GroupMe bot connected successfully.</p> : null}
-      {query.status === "error" ? <p className="mt-4 rounded-lg bg-red-50 p-3 text-sm text-red-700">{decodeURIComponent(query.message || "Unable to connect GroupMe")}</p> : null}
+      <h1 className="text-3xl font-black">Connect GroupMe</h1>
+      <p className="mt-1 text-base text-slate-600">Follow these steps once and your team chat can answer common parent questions automatically.</p>
+      {query.status === "error" ? <p className="mt-4 rounded-lg bg-red-50 p-3 text-sm text-red-700">{decodeURIComponent(query.message || "Unable to connect GroupMe. Please check the token and group ID.")}</p> : null}
       <Card className="mt-6">
         <form action={connectGroupMe.bind(null, teamId)} className="grid gap-4">
-          <Field label="GroupMe access token" name="accessToken" type="password" required />
+          <p className="text-sm font-semibold text-slate-600">Step 1: Add your GroupMe access token</p>
+          <Field label="GroupMe access token" name="accessToken" type="password" required helpText="You can create this in GroupMe's developer tools." />
+          <p className="text-sm font-semibold text-slate-600">Step 2: Add the Group ID for your team chat</p>
           <Field label="Group ID" name="groupId" required />
-          <Field label="Bot name" name="botName" placeholder="Ask Coach" />
-          <Button>Connect GroupMe bot</Button>
+          <p className="text-sm font-semibold text-slate-600">Step 3: Pick a bot name parents will recognize</p>
+          <Field label="Bot name" name="botName" placeholder="CoachAssist Bot" />
+          <Button>Connect GroupMe</Button>
         </form>
         <p className="mt-4 text-xs text-slate-500">
-          Access tokens are encrypted before storage in this MVP. For production hardening, rotate keys and move secret material to managed KMS.
+          Your token is encrypted before storage. If setup fails, double-check token permissions and your Group ID.
         </p>
       </Card>
       <div className="mt-6 grid gap-4">
@@ -45,6 +48,7 @@ export default async function GroupMePage({
           </Card>
         ))}
       </div>
+      <StatusToast message={query.status === "connected" ? "Bot connected." : undefined} />
     </div>
   );
 }

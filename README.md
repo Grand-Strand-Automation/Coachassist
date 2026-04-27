@@ -1,6 +1,6 @@
-# Ask Coach SaaS
+# CoachAssist
 
-Ask Coach is a multi-tenant youth sports communication assistant. Coaches publish baseball game details in a Next.js dashboard, parents ask natural questions in GroupMe, and the bot answers from tenant-scoped game data and FAQs.
+CoachAssist is a youth sports communication assistant for busy coaches. Coaches post game details in a simple dashboard, parents ask natural questions in GroupMe, and the bot answers from team game data and FAQs.
 
 ## Included architecture
 
@@ -51,7 +51,7 @@ Optional but strongly recommended:
 
 - `OPENAI_API_KEY` (if missing, deterministic fallback responses are used)
 - `OPENAI_MODEL` (defaults to `gpt-4o-mini`)
-- `GROUPME_BOT_NAME_DEFAULT` (defaults to `Ask Coach`)
+- `GROUPME_BOT_NAME_DEFAULT` (defaults to `CoachAssist Bot`)
 - `CRON_SECRET` (required if you want to protect `/api/cron/reminders`)
 
 Stripe placeholders (not active for MVP pilot):
@@ -87,7 +87,7 @@ Notes:
 
 ## GroupMe setup/testing
 
-1. In the dashboard, open a team and go to **GroupMe integration**.
+1. In the dashboard, open a team and go to **Connect GroupMe**.
 2. Enter a GroupMe access token, group ID, and optional bot name.
 3. The app calls GroupMe bot creation with callback URL `${APP_URL}/api/groupme/webhook` and stores the bot ID by tenant/team.
 4. Publish an active game from the team game page.

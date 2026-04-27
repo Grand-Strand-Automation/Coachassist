@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Card, EmptyState, Field, Button, Badge } from "@/components/ui";
 import { requireUser } from "@/lib/auth";
 import { createOrganization } from "@/lib/actions";
+import { PageHeader } from "@/components/page-header";
 export default async function DashboardPage({
   searchParams,
 }: {
@@ -38,13 +39,7 @@ export default async function DashboardPage({
 
   return (
     <div>
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-black text-slate-900">{org.name}</h1>
-          <p className="mt-1 text-slate-600">Manage your team bot connection, active game, reminders, and recent parent messages.</p>
-        </div>
-        <Badge>{org.plan} plan</Badge>
-      </div>
+      <PageHeader title={org.name} subtitle="Choose a team to update this week's game, reminders, FAQs, and parent messages." action={<Badge>{org.plan} plan</Badge>} />
       <div className="mt-8 grid gap-5 md:grid-cols-3">
         {teams?.map((team) => (
           <Card key={team.id}>
@@ -57,8 +52,8 @@ export default async function DashboardPage({
                 {reminderMap.get(team.id) ? "Reminders enabled" : "Reminders disabled"}
               </Badge>
             </div>
-            <p className="mt-4 text-xs text-slate-500">Recent message: {recentLogMap.get(team.id) || "No logs yet"}</p>
-            <Link href={`/app/team/${team.id}`} className="mt-5 inline-block text-sm font-semibold text-blue-700">
+            <p className="mt-4 text-sm text-slate-500">Recent parent message: {recentLogMap.get(team.id) || "No messages yet"}</p>
+            <Link href={`/app/team/${team.id}`} className="mt-5 inline-block text-base font-semibold text-[#0C2D5A]">
               Open team
             </Link>
           </Card>
@@ -73,7 +68,7 @@ function Onboarding({ status, message }: { status?: string; message?: string }) 
     <div className="mx-auto max-w-2xl">
       {status === "error" ? <p className="rounded-lg bg-red-50 p-3 text-sm text-red-700">{decodeURIComponent(message || "Unable to create organization")}</p> : null}
       {status === "success" ? <p className="rounded-lg bg-emerald-50 p-3 text-sm text-emerald-700">Organization created. You can now finish setup.</p> : null}
-      <EmptyState title="Create your first organization" body="Set up a tenant and team before connecting GroupMe or publishing game details." />
+      <EmptyState title="Create your first team space" body="Set up your team before connecting GroupMe or posting this week's game." />
       <Card className="mt-6">
         <form action={createOrganization} className="grid gap-4">
           <Field label="Organization name" name="organizationName" placeholder="Northside Baseball" required />
